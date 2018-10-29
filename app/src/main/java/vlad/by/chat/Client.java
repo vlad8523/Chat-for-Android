@@ -1,6 +1,6 @@
 package vlad.by.chat;
 
-import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -9,11 +9,13 @@ import java.net.UnknownHostException;
 import java.util.Scanner;
 
 public class Client implements Runnable {
+    //Socket соединения
     private static Socket connection = null;
+    //Ввод-вывод
     private static Scanner input;
     private static PrintWriter output;
-
-    private static boolean isOpen = true;
+    //Открыто ли соединение
+    private static boolean isConnectionOpen = false;
 
     private MainActivity m;
 
@@ -28,8 +30,13 @@ public class Client implements Runnable {
     public void run() {
         try{
             connection = openConnection();
-            output = new PrintWriter(connection.getOutputStream());
-            input = new Scanner(connection.getInputStream());
+            if (connection!=null) {
+                if (connection.isConnected()) {
+                    output = new PrintWriter(connection.getOutputStream());
+                    input = new Scanner(connection.getInputStream());
+                }
+            }
+            else m.showToast("Ошибка соединения");
             checkInput(input);
         } catch (UnknownHostException e) {
             e.printStackTrace();
@@ -39,13 +46,14 @@ public class Client implements Runnable {
 
     }
     //Открывает соединение и отдает Socket
-    private static Socket openConnection(){
+    private Socket openConnection(){
         closeConnection();
         try {
             connection = new Socket(Const.HOST,Const.PORT);
             output = new PrintWriter(connection.getOutputStream());
+            isConnectionOpen = connection.isConnected();
         } catch (IOException e) {
-            e.printStackTrace();
+            isConnectionOpen = false;
         }
         return connection;
     }
@@ -55,6 +63,7 @@ public class Client implements Runnable {
             if (!connection.isClosed()){
                 try {
                     connection.close();
+                    isConnectionOpen = false;
 
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -65,7 +74,7 @@ public class Client implements Runnable {
     }
     //Просмотривает ввод на предмет сообщений
     private void checkInput(Scanner input){
-        while (isOpen) {
+        while (isConnectionOpen) {
             if (input.hasNext()){
                 String inMess = input.nextLine();
                 m.changeChat(inMess);
@@ -88,7 +97,7 @@ public class Client implements Runnable {
             output.flush();
             output.close();
         }
-        isOpen = false;
+        isConnectionOpen = false;
         if (input!=null)input.close();
         try {
             if (connection!=null) connection.close();

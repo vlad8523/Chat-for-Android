@@ -1,4 +1,9 @@
 <resources>
     <string name="app_name">Chat</string>
     <string name="send_rus">Отправить</string>
+    <string name="action_settings">Настройки</string>
+    <string name="action_repeat_connections">Повторение подключения</string>
+    <string name="pref_name">Ваше имя</string>
+    <string name="pref_ip">IP адресс</string>
+    <string name="pref_port">Порт</string>
 </resources>
